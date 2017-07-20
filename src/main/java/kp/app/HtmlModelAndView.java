@@ -19,11 +19,12 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 
 /**
- * Simple static implementation for a HTML-Page that has placeholders.
+ * Simple static implementation for a HTML page that has placeholder variables
+ * for {@link ViewModelData.Attr}.
  * 
  * @author broxp
  */
-class HtmlModelAndView extends ModelAndView {
+public class HtmlModelAndView extends ModelAndView {
 	private static final Log log = LogFactory.getLog(HtmlModelAndView.class);
 
 	public HtmlModelAndView(String res, ViewModelData modelData) {

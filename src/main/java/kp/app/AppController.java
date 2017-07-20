@@ -35,7 +35,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @author broxp
  */
 @Controller
-class AppController {
+public class AppController {
 	private static final Log log = LogFactory.getLog(AppController.class);
 	@Autowired
 	ProcessEngine engine;
@@ -99,8 +99,8 @@ class AppController {
 			engine.getTaskService().complete(task.getId(), data);
 
 			String taskDefinitionKey = task.getTaskDefinitionKey();
-			String target = ((FlowNode) model.getModelElementById(taskDefinitionKey)) //
-					.getOutgoing().stream() //
+			FlowNode flowNode = (FlowNode) model.getModelElementById(taskDefinitionKey);
+			String target = flowNode.getOutgoing().stream() //
 					.map(mod -> mod.getTarget().getId()) //
 					.collect(Collectors.toList()) //
 					.toString();
@@ -112,7 +112,7 @@ class AppController {
 		}
 	}
 
-	/** Returns the {@link ModelAndView} for this app. */
+	/** Returns the {@link ModelAndView} for this application. */
 	private ModelAndView getModel(String title, Map<String, Object> data) {
 		log.debug(title);
 		ViewModelData model = new ViewModelData();
@@ -161,7 +161,7 @@ class AppController {
 
 		List<ProcessInstanceData> res = new ArrayList<>();
 
-		Map<String, List<Execution>> grouped = executions.stream() //
+		Map<String, List<Execution>> grouped = executions.stream()
 				.collect(Collectors.groupingBy(a -> a.getProcessInstanceId()));
 
 		for (Entry<String, List<Execution>> group : grouped.entrySet()) {

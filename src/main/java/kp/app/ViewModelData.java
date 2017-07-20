@@ -5,13 +5,14 @@ package kp.app;
  * 
  * @author broxp
  */
-class ViewModelData {
+public class ViewModelData {
 	public String title;
 	public String uri;
 	public String info;
 	public String options;
 
-	enum Attr {
+	/** Attributes of the {@link ViewModelData} */
+	public enum Attr {
 		title, uri, info, options
 	}
 }

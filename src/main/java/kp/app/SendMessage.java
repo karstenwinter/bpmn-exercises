@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  * @author broxp
  */
 @Service("sendMessage")
-class SendMessage implements JavaDelegate {
+public class SendMessage implements JavaDelegate {
 	private static final Log log = LogFactory.getLog(SendMessage.class);
 
 	@Override

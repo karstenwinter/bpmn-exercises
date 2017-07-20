@@ -18,7 +18,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @Configuration
 @ComponentScan("kp.app")
-class KpProcessEngineConfiguration {
+public class KpProcessEngineConfiguration {
 	@Bean
 	public DataSource dataSource() {
 		// Use a JNDI data source or read the properties from

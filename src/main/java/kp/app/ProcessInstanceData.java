@@ -8,7 +8,7 @@ import java.util.TreeMap;
  * 
  * @author broxp
  */
-class ProcessInstanceData {
+public class ProcessInstanceData {
 	public String procId;
 	public String taskId;
 	public Map<String, String> actions = new TreeMap<>();

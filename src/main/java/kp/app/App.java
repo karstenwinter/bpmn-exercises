@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
  * @author broxp
  */
 @SpringBootApplication
-class App {
+public class App {
 	private static final Log log = LogFactory.getLog(App.class);
 
 	public static final String KP_PROCESS = "kp-process";
