@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * On execution, this class sends the message defined in the {@link ThrowEvent}
  * model this class is attached to.
  * 
- * @author karsten.pietrzyk
+ * @author broxp
  */
 @Service("sendMessage")
 class SendMessage implements JavaDelegate {

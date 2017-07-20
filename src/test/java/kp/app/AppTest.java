@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.camunda.bpm.dmn.engine.DmnDecisionResult;
 import org.camunda.bpm.engine.ProcessEngine;
@@ -29,17 +30,17 @@ import org.junit.Test;
  * Tests different paths in the process and also some decisions.
  * 
  * <p>
- * Remark: Inheriting from {@link ProcessEngineAssertions} enables easier
- * Organise imports.
+ * Remark: Inheriting from {@link ProcessEngineAssertions} is not necessary but
+ * enables easier Organise imports.
  * 
- * @author karsten.pietrzyk
+ * @author broxp
  */
 @Deployment(resources = { App.BPMN_FILE, App.DMN_FILE })
 public class AppTest extends ProcessEngineAssertions {
 	@ClassRule
 	public static ProcessEngineRule rule = TestCoverageProcessEngineRuleBuilder.create().build();
 
-	private String id;
+	private String processModelId;
 	private BpmnModelInstance model;
 
 	private ProcessEngine engine() {
@@ -65,8 +66,8 @@ public class AppTest extends ProcessEngineAssertions {
 				.deployWithResult();
 		assertThat(result.getDeployedProcessDefinitions()).isNotEmpty();
 
-		id = result.getDeployedProcessDefinitions().get(0).getId();
-		model = repositoryService.getBpmnModelInstance(id);
+		processModelId = result.getDeployedProcessDefinitions().get(0).getId();
+		model = repositoryService.getBpmnModelInstance(processModelId);
 		assertThat(model).isNotNull();
 	}
 
@@ -78,7 +79,7 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("review", "yes");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask", "CreateOrderTask", "PreparePizzaTask",
-				"PrepareDrinksTask", "OfferMealTask", "PayMealTask", "EatTask", "DrinkTask", "WriteReviewTask",
+				"PrepareDrinksTask", "OfferMealTask", "EatTask", "DrinkTask", "PayMealTask", "WriteReviewTask",
 				"ProcessReviewTask");
 	}
 
@@ -100,11 +101,22 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("review", "yes");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask", "CreateOrderTask", "PrepareDrinksTask",
-				"OfferMealTask", "PayMealTask", "DrinkTask", "WriteReviewTask", "ProcessReviewTask");
+				"OfferMealTask", "DrinkTask", "PayMealTask", "WriteReviewTask", "ProcessReviewTask");
+	}
+
+	@Test
+	public void testPizzaOnlyNoReviewProcess() {
+		Map<String, Object> data = new HashMap<>();
+		data.put("pizza", "yes");
+		data.put("drinks", "null");
+		data.put("review", "null");
+
+		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask", "CreateOrderTask", "PreparePizzaTask",
+				"OfferMealTask", "EatTask", "PayMealTask", "WriteReviewTask");
 	}
 
 	/**
-	 * JUnit's Parameterized class is over-engineering here.
+	 * JUnit's Parameterized runner is possible but over-engineering at this point.
 	 */
 	@Test
 	public void testDecisions() {
@@ -136,42 +148,30 @@ public class AppTest extends ProcessEngineAssertions {
 		}
 	}
 
-	@Test
-	public void testPizzaOnlyNoReviewProcess() {
-		Map<String, Object> data = new HashMap<>();
-		data.put("pizza", "yes");
-		data.put("drinks", "null");
-		data.put("review", "null");
-
-		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask", "CreateOrderTask", "PreparePizzaTask",
-				"OfferMealTask", "PayMealTask", "EatTask", "WriteReviewTask");
-	}
-
 	/**
 	 * Asserts that a newly started process instance will finish if these user tasks
 	 * are completed in the given order.
 	 */
-	private void assertProcessRunsTasks(String processKey, Map<String, Object> data, String... taskKeys) {
+	private void assertProcessRunsTasks(String processKey, Map<String, Object> data, String... orderedTaskKeys) {
 		ProcessInstance proc = engine().getRuntimeService().startProcessInstanceByKey(processKey);
-		for (String taskKey : taskKeys) {
+		for (String taskKey : orderedTaskKeys) {
 			TaskQuery createTaskQuery = engine().getTaskService().createTaskQuery();
 			List<Task> list = createTaskQuery.taskDefinitionKey(taskKey).list();
 
 			createTaskQuery = engine().getTaskService().createTaskQuery();
 			list = createTaskQuery.taskDefinitionKey(taskKey).list();
 
+			List<String> taskKeys = list.stream().map( //
+					x -> x.getTaskDefinitionKey()).collect(Collectors.toList());
+
+			assertThat(taskKeys).contains(taskKey);
+
+			// for parallel parts in the model: filter -> find first
 			Optional<Task> task = list.stream().filter( //
 					x -> x.getTaskDefinitionKey().equals(taskKey)).findFirst();
-
-			assertThat(task.isPresent()).as("expected " + taskKey + ", actual " + toString(list)).isTrue();
 
 			engine().getTaskService().complete(task.get().getId(), data);
 		}
 		assertThat(proc).isEnded();
-	}
-
-	/** Returns a string with the definition keys of the given tasks. */
-	private String toString(List<Task> list) {
-		return Arrays.deepToString(list.stream().map(x -> x.getTaskDefinitionKey()).toArray());
 	}
 }

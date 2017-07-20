@@ -11,6 +11,11 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * Engine configuration.
+ * 
+ * @author broxp
+ */
 @Configuration
 @ComponentScan("kp.app")
 class KpProcessEngineConfiguration {

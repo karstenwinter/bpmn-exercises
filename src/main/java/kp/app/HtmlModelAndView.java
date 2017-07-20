@@ -21,22 +21,21 @@ import org.springframework.web.servlet.View;
 /**
  * Simple static implementation for a HTML-Page that has placeholders.
  * 
- * @author karsten.pietrzyk
+ * @author broxp
  */
 class HtmlModelAndView extends ModelAndView {
 	private static final Log log = LogFactory.getLog(HtmlModelAndView.class);
 
-	public HtmlModelAndView(String res, ModelData modelData) {
+	public HtmlModelAndView(String res, ViewModelData modelData) {
 		super(createView(new ClassPathResource(res), modelData), "model", modelData);
 	}
 
 	/** Returns a view rendering the given HTML. */
-	private static View createView(Resource resource, ModelData modelData) {
+	private static View createView(Resource resource, ViewModelData modelData) {
 		return new View() {
 			@Override
 			public void render(Map<String, ?> model, HttpServletRequest req, HttpServletResponse resp)
 					throws Exception {
-				log.debug("rendering");
 				try {
 					resp.setContentType(getContentType());
 
@@ -44,8 +43,8 @@ class HtmlModelAndView extends ModelAndView {
 					InputStreamReader in = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
 					String string = FileCopyUtils.copyToString(in);
 
-					for (ModelData.Attr attr : ModelData.Attr.values()) {
-						Object object = ModelData.class.getField(attr.name()).get(modelData);
+					for (ViewModelData.Attr attr : ViewModelData.Attr.values()) {
+						Object object = ViewModelData.class.getField(attr.name()).get(modelData);
 						string = string.replace("${" + attr + "}", String.valueOf(object));
 					}
 

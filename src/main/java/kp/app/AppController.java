@@ -32,7 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 /**
  * User interaction happens here.
  * 
- * @author karsten.pietrzyk
+ * @author broxp
  */
 @Controller
 class AppController {
@@ -115,7 +115,7 @@ class AppController {
 	/** Returns the {@link ModelAndView} for this app. */
 	private ModelAndView getModel(String title, Map<String, Object> data) {
 		log.debug(title);
-		ModelData model = new ModelData();
+		ViewModelData model = new ViewModelData();
 		model.title = title;
 		model.info = infoOutput(data);
 		model.options = "<a href='start'>start</a>";
@@ -127,11 +127,11 @@ class AppController {
 		if (engine.getRepositoryService().createDeploymentQuery().count() == 0) {
 			return "";
 		}
-		List<ExecData> res = executions(data);
+		List<ProcessInstanceData> res = executions(data);
 		StringBuilder str = new StringBuilder();
 		str.append("<table><tr><th>Process Instance</th><th>Task</th><th>Data</th></tr>\n");
 		boolean showData = true;
-		for (ExecData execution : res) {
+		for (ProcessInstanceData execution : res) {
 			str.append("<tr><td>").append(execution.procId).append("</td><td>");
 			for (Entry<String, String> ac : execution.actions.entrySet()) {
 				str.append(ac.getValue() + " (" + ac.getKey() + ")").append("<br />");
@@ -155,17 +155,17 @@ class AppController {
 	}
 
 	/** Returns the running processes, grouped by process instance */
-	private List<ExecData> executions(Map<String, Object> data) {
+	private List<ProcessInstanceData> executions(Map<String, Object> data) {
 		BpmnModelInstance bpmn = engine.getRepositoryService().getBpmnModelInstance(App.getProcessId());
 		List<Execution> executions = engine.getRuntimeService().createExecutionQuery().list();
 
-		List<ExecData> res = new ArrayList<>();
+		List<ProcessInstanceData> res = new ArrayList<>();
 
 		Map<String, List<Execution>> grouped = executions.stream() //
 				.collect(Collectors.groupingBy(a -> a.getProcessInstanceId()));
 
 		for (Entry<String, List<Execution>> group : grouped.entrySet()) {
-			ExecData executionData = new ExecData();
+			ProcessInstanceData executionData = new ProcessInstanceData();
 			res.add(executionData);
 			executionData.procId = group.getKey();
 
@@ -200,8 +200,8 @@ class AppController {
 		return value;
 	}
 
-	/** Fills data into this {@link ExecData}. */
-	private void fillExecData(Map<String, Object> data, ExecData executionData, String procId,
+	/** Fills data into this {@link ProcessInstanceData}. */
+	private void fillExecData(Map<String, Object> data, ProcessInstanceData executionData, String procId,
 			ModelElementInstance elem) {
 		if (!(elem instanceof Activity)) {
 			return;
