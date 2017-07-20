@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="definitions_0hgdpsm" name="definitions" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="dmn2" name="dmn2">
+    <decisionTable id="decisionTable" hitPolicy="FIRST">
+      <input id="input1" label="pizzaReaction" camunda:inputVariable="">
+        <inputExpression id="inputExpression1" typeRef="string">        <text>pizzaReaction</text>
+</inputExpression>
+      </input>
+      <input id="InputClause_1w37wx6" label="drinksReaction" camunda:inputVariable="">
+        <inputExpression id="LiteralExpression_1yyb55m" typeRef="string">        <text>drinksReaction</text>
+</inputExpression>
+      </input>
+      <output id="OutputClause_0annj15" label="status" name="" typeRef="string" />
+      <rule id="row-740222427-5">
+        <inputEntry id="UnaryTests_09u1whk">        <text><![CDATA["funny"]]></text>
+</inputEntry>
+        <inputEntry id="UnaryTests_0a0ufdn">        <text><![CDATA["funny"]]></text>
+</inputEntry>
+        <outputEntry id="LiteralExpression_169h945">        <text><![CDATA["not good"]]></text>
+</outputEntry>
+      </rule>
+      <rule id="row-740222427-6">
+        <inputEntry id="UnaryTests_18a12bp">        <text><![CDATA["disgusting"]]></text>
+</inputEntry>
+        <inputEntry id="UnaryTests_0jvbhu5">        <text></text>
+</inputEntry>
+        <outputEntry id="LiteralExpression_04ox05z">        <text><![CDATA["not good"]]></text>
+</outputEntry>
+      </rule>
+      <rule id="row-740222427-7">
+        <inputEntry id="UnaryTests_1ko19b5">        <text></text>
+</inputEntry>
+        <inputEntry id="UnaryTests_03atjv3">        <text><![CDATA["disgusting"]]></text>
+</inputEntry>
+        <outputEntry id="LiteralExpression_18uea2h">        <text><![CDATA["not good"]]></text>
+</outputEntry>
+      </rule>
+      <rule id="row-740222427-8">
+        <inputEntry id="UnaryTests_0tvv1iz">        <text></text>
+</inputEntry>
+        <inputEntry id="UnaryTests_17kmvss">        <text></text>
+</inputEntry>
+        <outputEntry id="LiteralExpression_1pu5pf1">        <text><![CDATA["good"]]></text>
+</outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

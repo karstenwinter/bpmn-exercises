@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.camunda.bpm.dmn.engine.DmnDecisionResult;
@@ -34,7 +35,7 @@ import org.junit.Test;
  * 
  * @author broxp
  */
-@Deployment(resources = { App.BPMN_FILE, App.DMN_FILE })
+@Deployment(resources = { App.BPMN_FILE, App.DMN_FILE, App.DMN2_FILE })
 public class AppTest extends ProcessEngineAssertions {
 	@ClassRule
 	public static ProcessEngineRule rule = TestCoverageProcessEngineRuleBuilder.create()
@@ -42,10 +43,6 @@ public class AppTest extends ProcessEngineAssertions {
 
 	private String processModelId;
 	private BpmnModelInstance model;
-
-	private ProcessEngine engine() {
-		return rule.getProcessEngine();
-	}
 
 	/**
 	 * Deploys the process and decision (manually), retrieves id and model for
@@ -55,13 +52,11 @@ public class AppTest extends ProcessEngineAssertions {
 	public void setUp() throws Exception {
 		ProcessEngineAssertions.init(engine());
 		Mocks.register("sendMessage", new SendMessage());
+		Mocks.register("messageOnVariable", new MessageOnVariable());
+		Mocks.register("logger", new LoggerDelegate());
 
 		RepositoryService repositoryService = engine().getRepositoryService();
-		assertThat(repositoryService).isNotNull();
-
-		DeploymentWithDefinitions result = repositoryService.createDeployment()
-				.addClasspathResource(App.BPMN_FILE).addClasspathResource(App.DMN_FILE)
-				.deployWithResult();
+		DeploymentWithDefinitions result = App.deployFiles(repositoryService);
 		assertThat(result.getDeployedProcessDefinitions()).isNotEmpty();
 
 		processModelId = result.getDeployedProcessDefinitions().get(0).getId();
@@ -75,6 +70,8 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("pizza", "yes");
 		data.put("drinks", "yes");
 		data.put("review", "yes");
+		data.put("pizzaReaction", "");
+		data.put("drinksReaction", "");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask", "PreparePizzaTask", "PrepareDrinksTask",
@@ -82,12 +79,28 @@ public class AppTest extends ProcessEngineAssertions {
 				"ProcessReviewTask");
 	}
 
+	// @Test
+	// public void testDangerousProcess() {
+	// Map<String, Object> data = new HashMap<>();
+	// data.put("pizza", "yes");
+	// data.put("drinks", "yes");
+	// data.put("review", "yes");
+	// data.put("pizzaReaction", "funny");
+	// data.put("drinksReaction", "funny");
+	//
+	// assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
+	// "CreateOrderTask", "PreparePizzaTask", "PrepareDrinksTask",
+	// "OfferMealTask", "EatTask", "DrinkTask", "ProblemTask", "AmbulanceTask");
+	// }
+
 	@Test
 	public void testShortestProcess() {
 		Map<String, Object> data = new HashMap<>();
 		data.put("pizza", "");
 		data.put("drinks", "");
 		data.put("review", "");
+		data.put("pizzaReaction", "");
+		data.put("drinksReaction", "");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask");
@@ -99,6 +112,8 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("pizza", "");
 		data.put("drinks", "yes");
 		data.put("review", "yes");
+		data.put("pizzaReaction", "good");
+		data.put("drinksReaction", "good");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask", "PrepareDrinksTask", "OfferMealTask", "DrinkTask",
@@ -111,6 +126,8 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("pizza", "yes");
 		data.put("drinks", "");
 		data.put("review", "");
+		data.put("pizzaReaction", "");
+		data.put("drinksReaction", "");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask", "PreparePizzaTask", "OfferMealTask", "EatTask",
@@ -121,7 +138,7 @@ public class AppTest extends ProcessEngineAssertions {
 	 * JUnit's Parameterized runner is possible but over-engineering at this point.
 	 */
 	@Test
-	public void testDecisions() {
+	public void testDecisions1() {
 		String[][] triples = { //
 				// pizza, drinks, review
 				{ "salami", "cola", "Yummy salami pizza and cola." }, //
@@ -133,23 +150,50 @@ public class AppTest extends ProcessEngineAssertions {
 				{ "", "", "" }, //
 		};
 
-		for (String[] triple : triples) {
-			String pizza = triple[0];
-			String drinks = triple[1];
-			String result = triple[2];
+		assertDecisionCases(App.KP_DECISION, triple -> {
+			Map<String, Object> data = new HashMap<>();
+			data.put("pizza", triple[0]);
+			data.put("drinks", triple[1]);
+			return data;
+		}, t -> t[2], triples);
+	}
+
+	@Test
+	public void testDecisions2() {
+		String[][] triples = { //
+				// pizzaReaction, drinksReaction, result
+				{ "good", "good", "good" }, //
+				{ "", "funny", "good" }, //
+				{ "funny", "", "good" }, //
+				{ "funny", "funny", "not good" }, //
+				{ "", "disgusting", "not good" }, //
+				{ "disgusting", "", "not good" }, //
+		};
+
+		assertDecisionCases(App.KP_DECISION2, triple -> {
+			Map<String, Object> data = new HashMap<>();
+			data.put("pizzaReaction", triple[0]);
+			data.put("drinksReaction", triple[1]);
+			return data;
+		}, t -> t[2], triples);
+	}
+
+	private void assertDecisionCases(String dmnKey,
+			Function<String[], Map<String, Object>> input,
+			Function<String[], String> output, String[][] data) {
+		for (String[] triple : data) {
+			Map<String, Object> inputCase = input.apply(triple);
+			String outputCase = output.apply(triple);
 
 			DecisionsEvaluationBuilder dmn = engine().getDecisionService()
-					.evaluateDecisionByKey(App.KP_DECISION);
-			Map<String, Object> data = new HashMap<>();
-			data.put("pizza", pizza);
-			data.put("drinks", drinks);
+					.evaluateDecisionByKey(dmnKey);
 
 			String caseString = Arrays.deepToString(triple);
 
-			DmnDecisionResult res = dmn.variables(data).evaluate();
+			DmnDecisionResult res = dmn.variables(inputCase).evaluate();
 			assertThat(res).as(caseString).isNotEmpty();
 			String val = res.getSingleEntry();
-			assertThat(val).as(caseString).isEqualTo(result);
+			assertThat(val).as(caseString).isEqualTo(outputCase);
 		}
 	}
 
@@ -163,10 +207,7 @@ public class AppTest extends ProcessEngineAssertions {
 				.startProcessInstanceByKey(processKey);
 		for (String taskKey : orderedTaskKeys) {
 			TaskQuery createTaskQuery = engine().getTaskService().createTaskQuery();
-			List<Task> list = createTaskQuery.taskDefinitionKey(taskKey).list();
-
-			createTaskQuery = engine().getTaskService().createTaskQuery();
-			list = createTaskQuery.taskDefinitionKey(taskKey).list();
+			List<Task> list = createTaskQuery.list();
 
 			List<String> taskKeys = list.stream().map(x -> x.getTaskDefinitionKey())
 					.collect(Collectors.toList());
@@ -181,4 +222,9 @@ public class AppTest extends ProcessEngineAssertions {
 		}
 		assertThat(proc).isEnded();
 	}
+
+	private ProcessEngine engine() {
+		return rule.getProcessEngine();
+	}
+
 }

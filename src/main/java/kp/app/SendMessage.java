@@ -1,6 +1,7 @@
 package kp.app;
 
 import java.util.Collection;
+import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,11 +42,12 @@ public class SendMessage implements JavaDelegate {
 			}
 			MessageEventDefinition m = (MessageEventDefinition) eventDefinitions
 					.iterator().next();
-			String name = m.getMessage().getName();
-			log.debug("message name: " + name);
+			String messageName = m.getMessage().getName();
+			log.debug("message name: " + messageName);
 			RuntimeService runtimeService = execution.getProcessEngineServices()
 					.getRuntimeService();
-			runtimeService.correlateMessage(name, name);
+			runtimeService.correlateMessage(messageName, new HashMap<>(),
+					execution.getVariables());
 		} catch (Exception e) {
 			log.error("", e);
 			throw e;
