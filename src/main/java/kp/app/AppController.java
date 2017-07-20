@@ -63,14 +63,16 @@ public class AppController {
 		if (tasks.isEmpty()) {
 			title = "no task in execution " + procId;
 		} else {
-			BpmnModelInstance model = engine.getRepositoryService().getBpmnModelInstance(App.getProcessId());
+			BpmnModelInstance model = engine.getRepositoryService()
+					.getBpmnModelInstance(App.getProcessId());
 
 			for (Task task : tasks) {
 				if (task.getTaskDefinitionKey().equals(taskId)) {
 					title = completeOrFail(procId, taskId, data, model, task);
 					break;
 				} else {
-					title = "execution had task " + task.getTaskDefinitionKey() + ", not " + taskId;
+					title = "execution had task " + task.getTaskDefinitionKey() + ", not "
+							+ taskId;
 				}
 			}
 		}
@@ -80,7 +82,8 @@ public class AppController {
 	/** User interface for an unknown command. */
 	@GetMapping
 	@RequestMapping("/*")
-	public ModelAndView unknown(HttpServletRequest req, @RequestParam Map<String, Object> data) {
+	public ModelAndView unknown(HttpServletRequest req,
+			@RequestParam Map<String, Object> data) {
 		log.debug("list");
 		String requestURI = req.getRequestURI();
 		if (requestURI.startsWith("/")) {
@@ -93,19 +96,19 @@ public class AppController {
 	 * Tries to complete the given task. Returns the exception string representation
 	 * if an error occurred.
 	 */
-	private String completeOrFail(String procId, String taskId, Map<String, Object> data, BpmnModelInstance model,
-			Task task) {
+	private String completeOrFail(String procId, String taskId, Map<String, Object> data,
+			BpmnModelInstance model, Task task) {
 		try {
 			engine.getTaskService().complete(task.getId(), data);
 
 			String taskDefinitionKey = task.getTaskDefinitionKey();
 			FlowNode flowNode = (FlowNode) model.getModelElementById(taskDefinitionKey);
-			String target = flowNode.getOutgoing().stream() //
-					.map(mod -> mod.getTarget().getId()) //
-					.collect(Collectors.toList()) //
+			String target = flowNode.getOutgoing().stream()
+					.map(mod -> mod.getTarget().getId()).collect(Collectors.toList())
 					.toString();
 
-			return "completed task " + taskId + " in execution " + procId + (target.isEmpty() ? "" : (" to " + target));
+			return "completed task " + taskId + " in execution " + procId
+					+ (target.isEmpty() ? "" : (" to " + target));
 		} catch (Exception e) {
 			log.error("", e);
 			return e.toString();
@@ -129,7 +132,8 @@ public class AppController {
 		}
 		List<ProcessInstanceData> res = executions(data);
 		StringBuilder str = new StringBuilder();
-		str.append("<table><tr><th>Process Instance</th><th>Task</th><th>Data</th></tr>\n");
+		str.append(
+				"<table><tr><th>Process Instance</th><th>Task</th><th>Data</th></tr>\n");
 		boolean showData = true;
 		for (ProcessInstanceData execution : res) {
 			str.append("<tr><td>").append(execution.procId).append("</td><td>");
@@ -140,8 +144,9 @@ public class AppController {
 			if (showData) {
 				str.append("<form action=\"complete\" method=\"get\">");
 				for (Entry<String, Object> ac : execution.data.entrySet()) {
-					str.append(ac.getKey() + ": <input name=\"" + ac.getKey() + "\" type=\"text\" value=\""
-							+ ac.getValue() + "\"></input><br />");
+					str.append(ac.getKey() + ": <input name=\"" + ac.getKey()
+							+ "\" type=\"text\" value=\"" + ac.getValue()
+							+ "\"></input><br />");
 				}
 				str.append("<br /><input type=\"submit\" /><form>");
 				showData = false;
@@ -156,8 +161,10 @@ public class AppController {
 
 	/** Returns the running processes, grouped by process instance */
 	private List<ProcessInstanceData> executions(Map<String, Object> data) {
-		BpmnModelInstance bpmn = engine.getRepositoryService().getBpmnModelInstance(App.getProcessId());
-		List<Execution> executions = engine.getRuntimeService().createExecutionQuery().list();
+		BpmnModelInstance bpmn = engine.getRepositoryService()
+				.getBpmnModelInstance(App.getProcessId());
+		List<Execution> executions = engine.getRuntimeService().createExecutionQuery()
+				.list();
 
 		List<ProcessInstanceData> res = new ArrayList<>();
 
@@ -172,14 +179,17 @@ public class AppController {
 			for (Execution execution : group.getValue()) {
 				String procId = execution.getProcessInstanceId();
 
-				Map<String, Object> variables = engine.getRuntimeService().getVariables(procId);
+				Map<String, Object> variables = engine.getRuntimeService()
+						.getVariables(procId);
 				for (Entry<String, Object> entry : variables.entrySet()) {
 					Object value = unwrapValue(entry.getValue());
-					log.debug(value == null ? "--> null" : "--> " + value + " : " + value.getClass());
+					log.debug(value == null ? "--> null"
+							: "--> " + value + " : " + value.getClass());
 					executionData.data.put(entry.getKey(), String.valueOf(value));
 				}
 
-				List<String> activityIds = engine.getRuntimeService().getActiveActivityIds(procId);
+				List<String> activityIds = engine.getRuntimeService()
+						.getActiveActivityIds(procId);
 				for (String act : activityIds) {
 					ModelElementInstance elem = bpmn.getModelElementById(act);
 					fillExecData(data, executionData, procId, elem);
@@ -201,8 +211,8 @@ public class AppController {
 	}
 
 	/** Fills data into this {@link ProcessInstanceData}. */
-	private void fillExecData(Map<String, Object> data, ProcessInstanceData executionData, String procId,
-			ModelElementInstance elem) {
+	private void fillExecData(Map<String, Object> data, ProcessInstanceData executionData,
+			String procId, ModelElementInstance elem) {
 		if (!(elem instanceof Activity)) {
 			return;
 		}
@@ -210,13 +220,15 @@ public class AppController {
 
 		List<String> dataNames = task.getDataOutputAssociations().stream()
 				.flatMap(dataAssoc -> dataAssoc.getTarget() instanceof DataObjectReference
-						? Collections.singleton((DataObjectReference) dataAssoc.getTarget()).stream()
+						? Collections
+								.singleton((DataObjectReference) dataAssoc.getTarget())
+								.stream()
 						: null)
 				.map(x -> x.getName()).collect(Collectors.toList());
 
 		for (String string : dataNames) {
 			if (!executionData.data.containsKey(string)) {
-				executionData.data.put(string, "null");
+				executionData.data.put(string, "");
 			}
 		}
 
@@ -226,7 +238,8 @@ public class AppController {
 		executionData.taskId = task.getId();
 		TaskService taskService = engine.getTaskService();
 		TaskQuery query = taskService.createTaskQuery();
-		long count = query.processInstanceId(procId).taskDefinitionKey(task.getId()).count();
+		long count = query.processInstanceId(procId).taskDefinitionKey(task.getId())
+				.count();
 		if (count > 0) {
 			executionData.actions.put(task.getId(), task.getName());
 		}

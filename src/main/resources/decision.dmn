@@ -12,6 +12,7 @@
       </input>
       <output id="OutputClause_0annj15" label="review" name="" typeRef="string" />
       <rule id="row-892130770-4">
+        <description></description>
         <inputEntry id="UnaryTests_0xbdb8p">        <text><![CDATA["salami"]]></text>
 </inputEntry>
         <inputEntry id="UnaryTests_06mk2rl">        <text><![CDATA["cola"]]></text>
@@ -20,15 +21,16 @@
 </outputEntry>
       </rule>
       <rule id="row-892130770-1">
+        <description></description>
         <inputEntry id="UnaryTests_0jtc1sa">        <text><![CDATA["salami"]]></text>
 </inputEntry>
-        <inputEntry id="UnaryTests_1i001gi">        <text><![CDATA["null"]]></text>
+        <inputEntry id="UnaryTests_1i001gi">        <text><![CDATA[""]]></text>
 </inputEntry>
         <outputEntry id="LiteralExpression_1odw5c4">        <text><![CDATA["Yummy salami pizza."]]></text>
 </outputEntry>
       </rule>
       <rule id="table-306199888-1">
-        <inputEntry id="UnaryTests_1p4kbsy">        <text><![CDATA["null"]]></text>
+        <inputEntry id="UnaryTests_1p4kbsy">        <text><![CDATA[""]]></text>
 </inputEntry>
         <inputEntry id="UnaryTests_0f5li7s">        <text><![CDATA["cola"]]></text>
 </inputEntry>
@@ -36,11 +38,12 @@
 </outputEntry>
       </rule>
       <rule id="row-892130770-2">
-        <inputEntry id="UnaryTests_0yfwfcd">        <text><![CDATA[not("null")]]></text>
+        <description></description>
+        <inputEntry id="UnaryTests_0yfwfcd">        <text><![CDATA[""]]></text>
 </inputEntry>
-        <inputEntry id="UnaryTests_1e527ho">        <text><![CDATA[not("null")]]></text>
+        <inputEntry id="UnaryTests_1e527ho">        <text><![CDATA[""]]></text>
 </inputEntry>
-        <outputEntry id="LiteralExpression_0kifon7">        <text><![CDATA["Quite ok."]]></text>
+        <outputEntry id="LiteralExpression_0kifon7">        <text><![CDATA[""]]></text>
 </outputEntry>
       </rule>
       <rule id="row-892130770-3">
@@ -48,7 +51,7 @@
 </inputEntry>
         <inputEntry id="UnaryTests_0zw0rdz">        <text></text>
 </inputEntry>
-        <outputEntry id="LiteralExpression_1a7ror9">        <text><![CDATA["null"]]></text>
+        <outputEntry id="LiteralExpression_1a7ror9">        <text><![CDATA["Quite ok."]]></text>
 </outputEntry>
       </rule>
     </decisionTable>

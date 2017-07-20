@@ -29,7 +29,8 @@ public class SendMessage implements JavaDelegate {
 		try {
 			FlowElement modelElem = execution.getBpmnModelElementInstance();
 			if (!(modelElem instanceof ThrowEvent)) {
-				log.error("this class must be attached to a ThrowEvent, " + modelElem.getId() + " is a "
+				log.error("this class must be attached to a ThrowEvent, "
+						+ modelElem.getId() + " is a "
 						+ modelElem.getClass().getSimpleName());
 				return;
 			}
@@ -38,10 +39,12 @@ public class SendMessage implements JavaDelegate {
 			if (eventDefinitions.isEmpty()) {
 				log.debug("no messages defined in " + event.getId());
 			}
-			MessageEventDefinition m = (MessageEventDefinition) eventDefinitions.iterator().next();
+			MessageEventDefinition m = (MessageEventDefinition) eventDefinitions
+					.iterator().next();
 			String name = m.getMessage().getName();
 			log.debug("message name: " + name);
-			RuntimeService runtimeService = execution.getProcessEngineServices().getRuntimeService();
+			RuntimeService runtimeService = execution.getProcessEngineServices()
+					.getRuntimeService();
 			runtimeService.correlateMessage(name, name);
 		} catch (Exception e) {
 			log.error("", e);

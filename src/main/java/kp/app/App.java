@@ -62,26 +62,30 @@ public class App {
 			try {
 				RepositoryService repo = engine.getRepositoryService();
 				DeploymentBuilder deployment = repo.createDeployment();
-				DeploymentWithDefinitions result = deployment //
-						.addClasspathResource(BPMN_FILE) //
-						.addClasspathResource(DMN_FILE) //
+				DeploymentWithDefinitions result = deployment
+						.addClasspathResource(BPMN_FILE).addClasspathResource(DMN_FILE)
 						.deployWithResult();
-				List<ProcessDefinition> deployedProcessDefinitions = result.getDeployedProcessDefinitions();
-				Assert.isTrue(!deployedProcessDefinitions.isEmpty(), "No process deployed using " + BPMN_FILE);
+				List<ProcessDefinition> deplProc = result.getDeployedProcessDefinitions();
+				Assert.isTrue(!deplProc.isEmpty(),
+						"No process deployed using " + BPMN_FILE);
 
-				List<DecisionDefinition> deployedDecisionDefinitions = result.getDeployedDecisionDefinitions();
-				Assert.isTrue(!deployedDecisionDefinitions.isEmpty(), "No decisions deployed using " + DMN_FILE);
+				List<DecisionDefinition> deplDec = result
+						.getDeployedDecisionDefinitions();
+				Assert.isTrue(!deplDec.isEmpty(),
+						"No decisions deployed using " + DMN_FILE);
 
-				deployedProcessId = deployedProcessDefinitions.get(0).getId();
+				deployedProcessId = deplProc.get(0).getId();
 
 				BpmnModelInstance bpmn = repo.getBpmnModelInstance(deployedProcessId);
-				Assert.isTrue(bpmn != null, "RepositoryService returned no process model");
+				Assert.isTrue(bpmn != null,
+						"RepositoryService returned no process model");
 
 				Assert.isTrue(deployedProcessId.startsWith(KP_PROCESS),
-						"Process must start with " + KP_PROCESS + ", was " + deployedProcessId);
+						"Process must start with " + KP_PROCESS + ", was "
+								+ deployedProcessId);
 
-				log.debug("\nProcesses: " + deployedProcessDefinitions);
-				log.debug("\nDefinitions: " + deployedDecisionDefinitions);
+				log.debug("\nProcesses: " + deplProc);
+				log.debug("\nDefinitions: " + deplDec);
 			} catch (Exception e) {
 				log.error("", e);
 				throw e;
