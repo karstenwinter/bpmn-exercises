@@ -8,10 +8,17 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.model.bpmn.instance.EventDefinition;
+import org.camunda.bpm.model.bpmn.instance.FlowElement;
 import org.camunda.bpm.model.bpmn.instance.MessageEventDefinition;
 import org.camunda.bpm.model.bpmn.instance.ThrowEvent;
 import org.springframework.stereotype.Service;
 
+/**
+ * On execution, this class sends the message defined in the {@link ThrowEvent}
+ * model this class is attached to.
+ * 
+ * @author karsten.pietrzyk
+ */
 @Service("sendMessage")
 class SendMessage implements JavaDelegate {
 	private static final Log log = LogFactory.getLog(SendMessage.class);
@@ -20,8 +27,17 @@ class SendMessage implements JavaDelegate {
 	public void execute(DelegateExecution execution) throws Exception {
 		log.debug("sending message...");
 		try {
-			ThrowEvent event = (ThrowEvent) execution.getBpmnModelElementInstance();
+			FlowElement modelElem = execution.getBpmnModelElementInstance();
+			if (!(modelElem instanceof ThrowEvent)) {
+				log.error("this class must be attached to a ThrowEvent, " + modelElem.getId() + " is a "
+						+ modelElem.getClass().getSimpleName());
+				return;
+			}
+			ThrowEvent event = (ThrowEvent) modelElem;
 			Collection<EventDefinition> eventDefinitions = event.getEventDefinitions();
+			if (eventDefinitions.isEmpty()) {
+				log.debug("no messages defined in " + event.getId());
+			}
 			MessageEventDefinition m = (MessageEventDefinition) eventDefinitions.iterator().next();
 			String name = m.getMessage().getName();
 			log.debug("message name: " + name);

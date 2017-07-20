@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.util.Assert;
 
 /**
- * Simple Spring boot app for trying out a Camund process.
+ * Simple Spring boot app for trying out a Camunda process.
  * 
  * @author karsten.pietrzyk
  */
