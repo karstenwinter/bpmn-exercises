@@ -31,10 +31,8 @@ public class App {
 	public static final String[] FILES = {};
 	public static final String KP_PROCESS = "kp-process";
 	public static final String KP_DECISION = "dmn1";
-	public static final String KP_DECISION2 = "dmn2";
 	public static final String BPMN_FILE = "process.bpmn";
 	public static final String DMN_FILE = "decision.dmn";
-	public static final String DMN2_FILE = "decision-2.dmn";
 	private static String deployedProcessId;
 
 	/**
@@ -95,8 +93,7 @@ public class App {
 	public static DeploymentWithDefinitions deployFiles(RepositoryService repo) {
 		DeploymentBuilder deployment = repo.createDeployment();
 		DeploymentWithDefinitions result = deployment.addClasspathResource(BPMN_FILE)
-				.addClasspathResource(DMN_FILE).addClasspathResource(DMN2_FILE)
-				.deployWithResult();
+				.addClasspathResource(DMN_FILE).deployWithResult();
 		return result;
 	}
 }

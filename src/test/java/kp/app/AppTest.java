@@ -35,7 +35,7 @@ import org.junit.Test;
  * 
  * @author broxp
  */
-@Deployment(resources = { App.BPMN_FILE, App.DMN_FILE, App.DMN2_FILE })
+@Deployment(resources = { App.BPMN_FILE, App.DMN_FILE })
 public class AppTest extends ProcessEngineAssertions {
 	@ClassRule
 	public static ProcessEngineRule rule = TestCoverageProcessEngineRuleBuilder.create()
@@ -52,7 +52,6 @@ public class AppTest extends ProcessEngineAssertions {
 	public void setUp() throws Exception {
 		ProcessEngineAssertions.init(engine());
 		Mocks.register("sendMessage", new SendMessage());
-		Mocks.register("messageOnVariable", new MessageOnVariable());
 		Mocks.register("logger", new LoggerDelegate());
 
 		RepositoryService repositoryService = engine().getRepositoryService();
@@ -70,8 +69,6 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("pizza", "yes");
 		data.put("drinks", "yes");
 		data.put("review", "yes");
-		data.put("pizzaReaction", "");
-		data.put("drinksReaction", "");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask", "PreparePizzaTask", "PrepareDrinksTask",
@@ -79,28 +76,12 @@ public class AppTest extends ProcessEngineAssertions {
 				"ProcessReviewTask");
 	}
 
-	// @Test
-	// public void testDangerousProcess() {
-	// Map<String, Object> data = new HashMap<>();
-	// data.put("pizza", "yes");
-	// data.put("drinks", "yes");
-	// data.put("review", "yes");
-	// data.put("pizzaReaction", "funny");
-	// data.put("drinksReaction", "funny");
-	//
-	// assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
-	// "CreateOrderTask", "PreparePizzaTask", "PrepareDrinksTask",
-	// "OfferMealTask", "EatTask", "DrinkTask", "ProblemTask", "AmbulanceTask");
-	// }
-
 	@Test
 	public void testShortestProcess() {
 		Map<String, Object> data = new HashMap<>();
 		data.put("pizza", "");
 		data.put("drinks", "");
 		data.put("review", "");
-		data.put("pizzaReaction", "");
-		data.put("drinksReaction", "");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask");
@@ -112,8 +93,6 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("pizza", "");
 		data.put("drinks", "yes");
 		data.put("review", "yes");
-		data.put("pizzaReaction", "good");
-		data.put("drinksReaction", "good");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask", "PrepareDrinksTask", "OfferMealTask", "DrinkTask",
@@ -126,8 +105,6 @@ public class AppTest extends ProcessEngineAssertions {
 		data.put("pizza", "yes");
 		data.put("drinks", "");
 		data.put("review", "");
-		data.put("pizzaReaction", "");
-		data.put("drinksReaction", "");
 
 		assertProcessRunsTasks(App.KP_PROCESS, data, "OrderPizzaDrinksTask",
 				"CreateOrderTask", "PreparePizzaTask", "OfferMealTask", "EatTask",
@@ -154,26 +131,6 @@ public class AppTest extends ProcessEngineAssertions {
 			Map<String, Object> data = new HashMap<>();
 			data.put("pizza", triple[0]);
 			data.put("drinks", triple[1]);
-			return data;
-		}, t -> t[2], triples);
-	}
-
-	@Test
-	public void testDecisions2() {
-		String[][] triples = { //
-				// pizzaReaction, drinksReaction, result
-				{ "good", "good", "good" }, //
-				{ "", "funny", "good" }, //
-				{ "funny", "", "good" }, //
-				{ "funny", "funny", "not good" }, //
-				{ "", "disgusting", "not good" }, //
-				{ "disgusting", "", "not good" }, //
-		};
-
-		assertDecisionCases(App.KP_DECISION2, triple -> {
-			Map<String, Object> data = new HashMap<>();
-			data.put("pizzaReaction", triple[0]);
-			data.put("drinksReaction", triple[1]);
 			return data;
 		}, t -> t[2], triples);
 	}
